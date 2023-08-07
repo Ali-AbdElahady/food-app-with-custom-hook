@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { useState } from "react";
+// import {} from '@firebase/'
 const useHttp = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -20,8 +21,12 @@ const useHttp = () => {
         throw new Error("Some thing went wrong");
       }
 
+    //   console.log(response);
       const data = await response.json();
-      applyData(data);
+      console.log(data, requestConfig.method);
+      if (requestConfig.method !== "POST" || requestConfig.method !== "DELETE") {
+        applyData(data);
+      } 
     } catch (error) {
       setError(error.message || "Some thing went wrong");
     }

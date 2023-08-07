@@ -6,65 +6,65 @@ import Spinner from "./components/Spinner";
 import { useEffect } from "react";
 import AddMovie from "./components/AddMovie";
 import useHttp from "./hooks/use-http";
+import MoviesProvider from "./store/movies.provider";
 
 function App() {
   const [movies, setMovies] = useState([]);
   const { isLoading, error, sendRequest: fetchMovie } = useHttp();
 
+  const transformedData = (moviesObj) => {
+    console.log(moviesObj);
+    const loadedMovies = [];
+    for (const key in moviesObj) {
+      loadedMovies.push({
+        id: key,
+        title: moviesObj[key].title,
+        openingText: moviesObj[key].openingText,
+        releaseDate: moviesObj[key].releaseDate,
+      });
+    }
+    setMovies(loadedMovies);
+  };
+
   const fetchMovieHandler = useCallback((url, method, headers, body) => {
-    const transformedData =  (moviesObj) => {
-      const loadedMovies = [];
-      for (const key in moviesObj) {
-        loadedMovies.push({
-          id: key,
-          title: moviesObj[key].title,
-          openingText: moviesObj[key].openingText,
-          releaseDate: moviesObj[key].releaseDate,
-        });
-      }
-      // setTimeout(()=>{
-      //   console.log(movies);
-      // },500)
-      setMovies(loadedMovies);
-      
-    };
-    fetchMovie(
+    return fetchMovie(
       {
         url,
-        method: method ? method : null,
+        method: method ? method : "GET",
         headers: headers ? headers : {},
         body: body ? body : null,
       },
       transformedData
     );
-  },[])
-
-  useEffect(() => {
-    fetchMovieHandler(
-      "https://react-http-1474c-default-rtdb.firebaseio.com/movies.json"
-    );
   }, []);
 
-  const onfetchMovieHandler = ()=>{
-    fetchMovieHandler(
-      "https://react-http-1474c-default-rtdb.firebaseio.com/movies.json"
-    );
-  }
+  // useEffect(() => {
+  //   onfetchMovieHandler();
+  // }, []);
 
-  const addMovieHandler = async (movie) => {
-    await fetchMovieHandler(
-      "https://react-http-1474c-default-rtdb.firebaseio.com/movies.json",
-      "POST",
-      { "Content-Type": "application/json" },
-      JSON.stringify(movie),
-    );
+  const onfetchMovieHandler = async () => {
     await fetchMovieHandler(
       "https://react-http-1474c-default-rtdb.firebaseio.com/movies.json"
     );
   };
 
+  const addMovieHandler = async (movie) => {
+
+
+    const id = await fetchMovieHandler(
+      "https://react-http-1474c-default-rtdb.firebaseio.com/movies.json",
+      "POST",
+      { "Content-Type": "application/json" },
+      JSON.stringify(movie),
+    );
+
+    movie.id = id;
+    setMovies((prev)=> prev.concat(movie))
+ 
+  };
+
   return (
-    <React.Fragment>
+    <MoviesProvider>
       <section>
         <AddMovie onAddMovie={addMovieHandler} />
       </section>
@@ -72,12 +72,12 @@ function App() {
         <button onClick={onfetchMovieHandler}>Fetch Movies</button>
       </section>
       <section>
-        {!isLoading && error && <p style={{ color: "red" }}>{error}</p>}
-        {isLoading && <Spinner />}
-        {!isLoading && !error && movies.length === 0 && <p>no movies found</p>}
-        {!isLoading && movies.length > 0 && <MoviesList movies={movies} />}
+        {/* {!isLoading && error && <p style={{ color: "red" }}>{error}</p>} */}
+        {/* {isLoading && <Spinner />} */}
+        {/* {!isLoading && !error && movies.length === 0 && <p>no movies found</p>} */}
+        <MoviesList  />
       </section>
-    </React.Fragment>
+    </MoviesProvider>
   );
 }
 
